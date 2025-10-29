@@ -13,11 +13,23 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    },
+  phoneNumber: {
+      type: String,
+        required: true,
   },
   role: {
     type: String,
-    enum: ["user", "admin"],
-    default: "user",
+    enum: ["student", "recruiter"],
+    required: true,
+    },
+  profile : {
+     bio: { type: String, default: "" },
+     skills: { type: [String], default: [] },
+      company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+      profilePicture: { type: String, default: "" },
+      resume: { type: String, default: "" },
+      resumeOriginalName: { type: String, default: "" }
   },
 }, {
   timestamps: true,
