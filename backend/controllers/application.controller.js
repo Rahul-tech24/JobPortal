@@ -99,7 +99,6 @@ export const getJobApplications = async (req, res) => {
         const applications = await Application.find({ job: jobId })
             .populate('applicant', 'fullName email phoneNumber profile')
             .sort({ createdAt: -1 });
-
         res.status(200).json({ applications });
     } catch (error) {
         console.error("Error fetching job applications:", error);
