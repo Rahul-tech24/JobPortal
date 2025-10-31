@@ -1,39 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { login, clearError } from '../redux/authSlice';
 import { Button } from '../components/ui/button';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const dispatch = useDispatch();
+  const { loading, error: authError, isAuthenticated } = useSelector((state) => state.auth);
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError(''); // Clear error when user types
+    if (authError) {
+      dispatch(clearError());
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await login(formData);
-      navigate('/'); // Redirect to home after successful login
-    } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    dispatch(login(formData));
   };
 
   return (
@@ -85,9 +90,9 @@ export default function LoginPage() {
             </div>
 
             {/* Error Message */}
-            {error && (
+            {authError && (
               <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
-                <p className="text-red-400 text-sm">{error}</p>
+                <p className="text-red-400 text-sm">{authError}</p>
               </div>
             )}
 

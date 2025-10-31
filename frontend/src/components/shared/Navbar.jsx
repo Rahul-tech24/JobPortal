@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { logout } from '../../redux/authSlice'
 import { Button } from '../ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { 
@@ -26,7 +27,8 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, logout, isAuthenticated } = useAuth()
+  const dispatch = useDispatch()
+  const { user, isAuthenticated } = useSelector((state) => state.auth)
   
   
   useEffect(() => {
@@ -39,7 +41,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await logout()
+      await dispatch(logout()).unwrap()
       navigate('/login')
     } catch (error) {
       console.error('Logout failed:', error)

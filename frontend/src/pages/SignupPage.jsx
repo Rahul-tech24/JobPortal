@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { register, clearError } from '../redux/authSlice';
 import { Button } from '../components/ui/button';
 
 export default function SignupPage() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const dispatch = useDispatch();
+  const { loading, error: authError, isAuthenticated } = useSelector((state) => state.auth);
+  
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -13,37 +16,42 @@ export default function SignupPage() {
     password: '',
     role: 'student', // default role
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState('');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError(''); // Clear error when user types
+    setLocalError('');
+    if (authError) {
+      dispatch(clearError());
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
+    setLocalError('');
 
     // Basic validation
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      setLoading(false);
+      setLocalError('Password must be at least 6 characters long');
       return;
     }
 
-    try {
-      await register(formData);
-      navigate('/'); // Redirect to home after successful registration
-    } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    dispatch(register(formData));
   };
 
   return (
@@ -167,9 +175,9 @@ export default function SignupPage() {
             </div>
 
             {/* Error Message */}
-            {error && (
+            {(authError || localError) && (
               <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
-                <p className="text-red-400 text-sm">{error}</p>
+                <p className="text-red-400 text-sm">{authError || localError}</p>
               </div>
             )}
 
